@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AirAsia PIP System - StarMeter</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    /* Corporate Typography */
+    body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; color: #1f2937; padding-top: 56px; }
+    h1, h2, h3, h4, h5, h6, .font-kanit, label, .badge { font-family: 'Kanit', sans-serif; }
+    
+    /* Workday-style Global Components */
+    .wd-topbar { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: white; border-bottom: 1px solid #d1d5db; z-index: 50; display: flex; align-items: center; padding: 0 1.5rem; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .wd-search { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; width: 250px; color: #6b7280; font-size: 0.8rem; }
+    
+    .wd-context-header { background-color: #E21E26; color: white; padding: 1.5rem 2rem; padding-top: 2.5rem; }
+    
+    .wd-card { background: white; border: 1px solid #d1d5db; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem; }
+    .wd-card-header { border-bottom: 1px solid #e5e7eb; padding: 1rem 1.5rem; background: #f9fafb; font-family: 'Kanit', sans-serif; font-weight: 600; color: #374151; font-size: 1rem; }
+    .wd-card-body { padding: 1.5rem; }
+    
+    .wd-label { font-size: 0.75rem; font-weight: 600; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Kanit', sans-serif; margin-bottom: 0.25rem; display: block; }
+    .wd-input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 2px; outline: none; transition: border-color 0.2s; font-family: 'Sarabun', sans-serif; font-size: 0.9rem; background: #fff; }
+    .wd-input:focus { border-color: #E21E26; box-shadow: inset 0 0 0 1px #E21E26; }
+    .wd-input[readonly] { background: #f3f4f6; color: #6b7280; border-color: #e5e7eb; cursor: not-allowed; }
+    
+    .wd-btn-primary { background-color: #E21E26; color: white; padding: 0.5rem 1.25rem; border-radius: 2px; font-weight: 500; font-size: 0.875rem; font-family: 'Kanit', sans-serif; transition: background-color 0.2s; border: 1px solid transparent; cursor: pointer; }
+    .wd-btn-primary:hover { background-color: #c81a22; }
+    .wd-btn-secondary { background-color: white; color: #374151; padding: 0.5rem 1.25rem; border-radius: 2px; font-weight: 500; font-size: 0.875rem; font-family: 'Kanit', sans-serif; border: 1px solid #d1d5db; transition: background-color 0.2s; cursor: pointer; }
+    .wd-btn-secondary:hover { background-color: #f3f4f6; }
+    
+    .wd-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .wd-table th { font-family: 'Kanit', sans-serif; font-size: 0.75rem; font-weight: 600; color: #6b7280; padding: 0.75rem 1rem; border-bottom: 2px solid #e5e7eb; background: #f9fafb; }
+    .wd-table td { padding: 1rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem; vertical-align: top; }
+    .wd-table tr:hover { background-color: #fdf2f2; }
+
+    .required-star::after { content: " *"; color: #E21E26; }
+    textarea { resize: vertical; min-height: 60px; }
+    
+    /* Demo Controls */
+    .demo-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; border-top: 2px solid #E21E26; z-index: 100; padding: 6px 16px; display: flex; overflow-x: auto; gap: 6px; align-items: center; font-family: 'Kanit', sans-serif;}
+    .demo-btn { white-space: nowrap; padding: 4px 10px; font-size: 0.65rem; border-radius: 3px; background: transparent; border: 1px solid #475569; color: #cbd5e1; cursor: pointer; transition: 0.2s; font-weight: 400;}
+    .demo-btn.active { background: #E21E26; border-color: #E21E26; color: white; font-weight: 500;}
+    .demo-btn:hover:not(.active) { background: #334155; }
+    .hide-scroll::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!-- 🌐 GLOBAL TOP NAV -->
+  <!-- ========================================== -->
+  <div class="wd-topbar">
+    <div class="flex items-center gap-6">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/AirAsia_New_Logo.svg/960px-AirAsia_New_Logo.svg.png" class="h-6 object-contain" alt="Logo">
+      <div class="hidden md:flex wd-search">
+        <span>🔍</span>
+        <input type="text" placeholder="Search StarMeter..." class="bg-transparent outline-none w-full">
+      </div>
+    </div>
+    <div class="flex items-center gap-5">
+      <span class="cursor-pointer hover:text-gray-800 text-gray-400 hidden md:block">🔔</span>
+      <div class="flex items-center gap-3 border-l border-gray-200 pl-5">
+        <div class="text-right hidden lg:block">
+          <p class="text-[13px] font-bold text-gray-800 font-kanit leading-tight">Vacharavadh Piyarattanamongkol</p>
+          <p class="text-[10px] text-gray-500 font-kanit">Head, Learning & Leadership Solutions</p>
+        </div>
+        <div class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-700 border border-gray-300 shadow-sm">VP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 🎮 SYSTEM PRESENTER NAVIGATOR (10 Steps) -->
+  <!-- ========================================== -->
+  <div class="demo-bar hide-scroll">
+    <span class="text-[9px] font-medium text-gray-400 uppercase mr-2 tracking-widest">Flow:</span>
+    <button class="demo-btn active" id="btn-state-1" onclick="setDemoState(1)">1. Dashboard</button>
+    <button class="demo-btn" id="btn-state-2" onclick="setDemoState(2)">2. Setup</button>
+    <button class="demo-btn" id="btn-state-3" onclick="setDemoState(3)">3. ✉️ Invite</button>
+    <button class="demo-btn" id="btn-state-4" onclick="setDemoState(4)">4. Emp Accept</button>
+    <button class="demo-btn" id="btn-state-5" onclick="setDemoState(5)">5. ✉️ Acc Noti</button>
+    <button class="demo-btn" id="btn-state-6" onclick="setDemoState(6)">6. ✉️ Remind 30</button>
+    <button class="demo-btn" id="btn-state-7" onclick="setDemoState(7)">7. Check-in</button>
+    <button class="demo-btn" id="btn-state-8" onclick="setDemoState(8)">8. ✉️ Upd Noti</button>
+    <button class="demo-btn" id="btn-state-9" onclick="setDemoState(9)">9. Mid Eval</button>
+    <button class="demo-btn" id="btn-state-10" onclick="setDemoState(10)">10. Final</button>
+  </div>
+
+  <div class="w-full">
+    <!-- DYNAMIC CONTEXT HEADER -->
+    <div class="wd-context-header" id="dynamic-header">
+      <div class="max-w-6xl mx-auto flex justify-between items-end">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-wide font-kanit" id="header_title">Performance Improvement Plan</h1>
+          <p class="text-sm mt-1 opacity-90 font-light font-kanit" id="header_subtitle">StarMeter Module</p>
+        </div>
+        <div class="hidden md:flex gap-2">
+            <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-sm text-xs transition border border-white/30 font-kanit tracking-wide">Actions ▾</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="max-w-6xl mx-auto p-4 md:p-6 mt-4">
+
+      <!-- ========================================== -->
+      <!-- VIEW: DYNAMIC EMAIL MOCKUP -->
+      <!-- ========================================== -->
+      <div id="view-email" class="view-content hidden max-w-3xl mx-auto">
+        <div class="wd-card border-gray-300 shadow-md">
+          <div class="bg-gray-50 p-4 border-b border-gray-200 flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl">✉️</div>
+            <div class="flex-1">
+              <p class="font-bold text-gray-800 text-sm font-sans" id="email_sender">StarMeter Notification</p>
+              <p class="text-xs text-gray-500 font-sans">To: <span id="email_to" class="text-blue-600">-</span></p>
+            </div>
+          </div>
+          <div class="p-8 space-y-4 font-sans text-gray-700 text-sm leading-relaxed">
+            <h2 class="text-lg font-bold text-gray-900 border-b border-gray-200 pb-3 font-kanit" id="email_subject">-</h2>
+            <div id="email_body" class="space-y-4">
+               <!-- Content injected via JS -->
+            </div>
+            
+            <div class="py-6 border-t border-gray-100 mt-6 pt-6">
+               <button id="email_action_btn" class="wd-btn-primary w-full md:w-auto shadow">Proceed to Portal</button>
+            </div>
+            
+            <p class="text-[11px] text-gray-400 mt-4 text-center">This is an automated message from StarMeter (PIP Module). Please do not reply.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: STARMETER DASHBOARD -->
+      <!-- ========================================== -->
+      <div id="view-dashboard" class="view-content">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="wd-card p-4 flex justify-between items-center border-l-4 border-l-yellow-500">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full border-4 border-yellow-400 flex items-center justify-center text-yellow-600 font-bold text-sm">3</div>
+                    <div><p class="text-xs text-gray-500 font-kanit uppercase font-semibold">Active PIPs</p><p class="text-xl font-bold text-gray-800">In Progress</p></div>
+                </div>
+                <div class="text-[10px] text-gray-500 font-sans border-l border-gray-200 pl-3 leading-relaxed hidden sm:block">
+                    <div class="flex justify-between gap-3"><span>0-33%:</span><span class="font-bold text-gray-700">1</span></div>
+                    <div class="flex justify-between gap-3"><span>34-66%:</span><span class="font-bold text-gray-700">1</span></div>
+                    <div class="flex justify-between gap-3"><span>67-100%:</span><span class="font-bold text-gray-700">1</span></div>
+                </div>
+            </div>
+            <div class="wd-card p-4 flex items-center gap-4 border-l-4 border-l-green-500">
+                <div class="w-12 h-12 rounded-full border-4 border-green-400 flex items-center justify-center text-green-600 font-bold text-sm">24</div>
+                <div><p class="text-xs text-gray-500 font-kanit uppercase font-semibold">Completed</p><p class="text-xl font-bold text-gray-800">Passed</p></div>
+            </div>
+            <div class="wd-card p-4 flex items-center gap-4 border-l-4 border-l-red-500">
+                <div class="w-12 h-12 rounded-full border-4 border-red-400 flex items-center justify-center text-red-600 font-bold text-sm">5</div>
+                <div><p class="text-xs text-gray-500 font-kanit uppercase font-semibold">Completed</p><p class="text-xl font-bold text-gray-800">Failed</p></div>
+            </div>
+        </div>
+
+        <div class="wd-card">
+            <div class="wd-card-header flex justify-between items-center">
+                <span>Active Improvement Plans</span>
+                <button onclick="setDemoState(2)" class="wd-btn-secondary text-xs py-1">+ Create New PIP</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="wd-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Status / Milestone</th>
+                            <th>Timeline Progress</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="cursor-pointer" onclick="setDemoState(9)">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gray-200 rounded text-gray-600 flex items-center justify-center text-xs font-bold font-sans">👤</div>
+                                    <div><p class="font-medium text-blue-600 hover:underline" id="dash_emp_name">(รอสร้างข้อมูล)</p><p class="text-xs text-gray-500" id="dash_id">-</p></div>
+                                </div>
+                            </td>
+                            <td class="text-gray-600">RAMP</td>
+                            <td><span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">Awaiting Manager Review</span><p class="text-xs text-gray-500 mt-1">Day 30</p></td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 w-24"><div class="bg-yellow-500 h-1.5 rounded-full" style="width: 33%"></div></div>
+                                    <span class="text-xs text-gray-500">33%</span>
+                                </div>
+                            </td>
+                            <td><button class="wd-btn-secondary text-xs px-2 py-1">Review ▾</button></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gray-200 rounded text-gray-600 flex items-center justify-center text-xs font-bold font-sans">NS</div>
+                                    <div><p class="font-medium text-gray-800">Nattapong Sukprasert</p><p class="text-xs text-gray-500">AA54321</p></div>
+                                </div>
+                            </td>
+                            <td class="text-gray-600">RAMP</td>
+                            <td><span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">In Progress</span><p class="text-xs text-gray-500 mt-1">Day 60</p></td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 w-24"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 66%"></div></div>
+                                    <span class="text-xs text-gray-500">66%</span>
+                                </div>
+                            </td>
+                            <td><button class="wd-btn-secondary text-xs px-2 py-1">View ▾</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: MANAGER SETUP (PIP CREATION) -->
+      <!-- ========================================== -->
+      <div id="view-setup" class="view-content hidden max-w-4xl mx-auto">
+        <div class="wd-card">
+          <div class="wd-card-header">Initiate Performance Improvement Plan</div>
+          <div class="wd-card-body">
+            
+            <h3 class="font-kanit font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 text-sm uppercase">Employee Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div class="col-span-1 md:col-span-3">
+                <label class="wd-label required-star">Email Address</label>
+                <input type="email" id="s_email" class="wd-input" value="" onfocus="autoFill(this, 'empEmail')" placeholder="Click to autofill">
+              </div>
+              <div>
+                <label class="wd-label required-star">Full Name</label>
+                <input type="text" id="s_name" class="wd-input" value="" onfocus="autoFill(this, 'empName')" placeholder="Click to autofill">
+              </div>
+              <div>
+                <label class="wd-label required-star">Employee ID</label>
+                <input type="text" id="s_id" class="wd-input" value="" onfocus="autoFill(this, 'empId')" placeholder="Click to autofill">
+              </div>
+              <div>
+                <label class="wd-label required-star">Start Date</label>
+                <input type="date" id="s_date" class="wd-input" onfocus="autoFill(this, 'empDate')">
+              </div>
+            </div>
+            
+            <h3 class="font-kanit font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 text-sm uppercase">Development Goals (K-S-A)</h3>
+            
+            <div class="space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-gray-50 p-4 border border-gray-200 rounded">
+                <div class="md:col-span-3">
+                  <label class="wd-label required-star">Goal 1 Category</label>
+                  <select id="s_g1_type" class="wd-input bg-white"><option selected>Knowledge (K)</option><option>Skill (S)</option><option>Attitude (A)</option></select>
+                </div>
+                <div class="md:col-span-9 space-y-3">
+                  <div>
+                      <label class="wd-label required-star">Targeted Behavior</label>
+                      <textarea id="s_g1_b" class="wd-input" rows="2" onfocus="autoFill(this, 'g1b')" placeholder="Click to autofill..."></textarea>
+                  </div>
+                  <div>
+                      <label class="wd-label required-star">Targeted Result</label>
+                      <textarea id="s_g1_r" class="wd-input" rows="2" onfocus="autoFill(this, 'g1r')" placeholder="Click to autofill..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-gray-50 p-4 border border-gray-200 rounded">
+                <div class="md:col-span-3">
+                  <label class="wd-label required-star">Goal 2 Category</label>
+                  <select id="s_g2_type" class="wd-input bg-white"><option>Knowledge (K)</option><option selected>Skill (S)</option><option>Attitude (A)</option></select>
+                </div>
+                <div class="md:col-span-9 space-y-3">
+                  <div>
+                      <label class="wd-label required-star">Targeted Behavior</label>
+                      <textarea id="s_g2_b" class="wd-input" rows="2" onfocus="autoFill(this, 'g2b')" placeholder="Click to autofill..."></textarea>
+                  </div>
+                  <div>
+                      <label class="wd-label required-star">Targeted Result</label>
+                      <textarea id="s_g2_r" class="wd-input" rows="2" onfocus="autoFill(this, 'g2r')" placeholder="Click to autofill..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-gray-50 p-4 border border-gray-200 rounded">
+                <div class="md:col-span-3">
+                  <label class="wd-label required-star">Goal 3 Category</label>
+                  <select id="s_g3_type" class="wd-input bg-white"><option>Knowledge (K)</option><option>Skill (S)</option><option selected>Attitude (A)</option></select>
+                </div>
+                <div class="md:col-span-9 space-y-3">
+                  <div>
+                      <label class="wd-label required-star">Targeted Behavior</label>
+                      <textarea id="s_g3_b" class="wd-input" rows="2" onfocus="autoFill(this, 'g3b')" placeholder="Click to autofill..."></textarea>
+                  </div>
+                  <div>
+                      <label class="wd-label required-star">Targeted Result</label>
+                      <textarea id="s_g3_r" class="wd-input" rows="2" onfocus="autoFill(this, 'g3r')" placeholder="Click to autofill..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3 border-t border-gray-200 pt-4">
+                <button onclick="setDemoState(1)" class="wd-btn-secondary">Cancel</button>
+                <button onclick="saveSetupAndSendEmail()" class="wd-btn-primary">Submit & Issue PIP</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 4: EMPLOYEE ACCEPTANCE -->
+      <!-- ========================================== -->
+      <div id="view-accept" class="view-content hidden max-w-4xl mx-auto">
+        <div class="wd-card">
+          <div class="wd-card-header bg-gray-800 text-white">Employee Acknowledgment</div>
+          <div class="wd-card-body">
+            
+            <div class="flex flex-wrap gap-x-12 gap-y-4 mb-6 pb-4 border-b border-gray-200 text-sm">
+              <div><span class="wd-label">Employee</span><span id="acc_emp_info" class="font-medium text-gray-800">-</span></div>
+              <div><span class="wd-label">Start Date</span><span id="acc_start_date" class="font-medium text-gray-800">-</span></div>
+              <div><span class="wd-label">End Date</span><span id="acc_end_date" class="font-medium text-gray-800">-</span></div>
+            </div>
+            
+            <table class="wd-table border border-gray-200 mb-8">
+              <thead>
+                <tr>
+                  <th width="20%">Category</th>
+                  <th width="40%">Expectations (Behavior & Result)</th>
+                  <th width="40%">Employee Action Plan <span class="text-red-500">*</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="font-semibold text-gray-700" id="acc_g1_type">-</span></td>
+                  <td>
+                    <p class="text-xs text-gray-500 mb-1">Targeted Behavior:</p>
+                    <p class="text-sm text-gray-800 mb-3" id="acc_g1_b">-</p>
+                    <p class="text-xs text-gray-500 mb-1">Targeted Result:</p>
+                    <p class="text-sm font-medium text-red-700" id="acc_g1_r">-</p>
+                  </td>
+                  <td><textarea id="ack_comment_g1" class="wd-input h-full min-h-[100px]" onfocus="autoFill(this, 'ack1')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+                <tr>
+                  <td><span class="font-semibold text-gray-700" id="acc_g2_type">-</span></td>
+                  <td>
+                    <p class="text-xs text-gray-500 mb-1">Targeted Behavior:</p>
+                    <p class="text-sm text-gray-800 mb-3" id="acc_g2_b">-</p>
+                    <p class="text-xs text-gray-500 mb-1">Targeted Result:</p>
+                    <p class="text-sm font-medium text-red-700" id="acc_g2_r">-</p>
+                  </td>
+                  <td><textarea id="ack_comment_g2" class="wd-input h-full min-h-[100px]" onfocus="autoFill(this, 'ack2')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+                <tr>
+                  <td><span class="font-semibold text-gray-700" id="acc_g3_type">-</span></td>
+                  <td>
+                    <p class="text-xs text-gray-500 mb-1">Targeted Behavior:</p>
+                    <p class="text-sm text-gray-800 mb-3" id="acc_g3_b">-</p>
+                    <p class="text-xs text-gray-500 mb-1">Targeted Result:</p>
+                    <p class="text-sm font-medium text-red-700" id="acc_g3_r">-</p>
+                  </td>
+                  <td><textarea id="ack_comment_g3" class="wd-input h-full min-h-[100px]" onfocus="autoFill(this, 'ack3')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bg-gray-50 border border-gray-200 p-4 rounded mb-6 flex items-start gap-3">
+                <input type="checkbox" id="accept-tickbox" class="mt-1">
+                <label for="accept-tickbox" class="text-sm text-gray-800 cursor-pointer select-none">
+                    <b>ข้าพเจ้ารับทราบและยอมรับเงื่อนไขโครงการ PIP</b><br>
+                    <span class="text-xs text-gray-500">ข้าพเจ้าตกลงที่จะดำเนินการปรับปรุงผลงานและรายงานความคืบหน้าการเปลี่ยนแปลงพฤติกรรมในรอบ 30, 60 และ 90 วัน</span>
+                </label>
+            </div>
+
+            <div class="flex justify-end">
+               <button onclick="submitAcceptance()" class="wd-btn-primary">Acknowledge & Start Program</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 7: EMPLOYEE UPDATE (CHECK-IN) -->
+      <!-- ========================================== -->
+      <div id="view-update" class="view-content hidden max-w-4xl mx-auto">
+        <div class="wd-card">
+          <div class="wd-card-header flex justify-between items-center bg-gray-800 text-white">
+              <span>Milestone Check-in Update</span>
+              <span class="bg-yellow-500 text-white px-2 py-0.5 rounded text-xs">Day 30 - Pending</span>
+          </div>
+          <div class="wd-card-body">
+            
+            <div class="mb-8 px-4">
+                <div class="flex justify-between text-[10px] font-kanit font-bold text-gray-400 mb-1 px-1">
+                    <span class="text-blue-600">DAY 30</span><span>DAY 60</span><span>DAY 90</span>
+                </div>
+                <div class="w-full bg-gray-200 h-1 rounded-full relative">
+                    <div class="absolute top-0 left-0 bg-blue-600 h-1 rounded-full" style="width: 33%"></div>
+                    <div class="absolute top-[-3px] left-[33%] w-2.5 h-2.5 bg-blue-600 rounded-full ring-4 ring-blue-100"></div>
+                </div>
+            </div>
+
+            <table class="wd-table border border-gray-200 mb-6">
+              <thead>
+                <tr>
+                  <th width="35%">Targeted Behavior</th>
+                  <th width="65%">Your Progress Update</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                      <p class="font-semibold text-gray-800 text-sm leading-tight" id="upd_g1_b">-</p>
+                      <p class="text-[10px] text-gray-500 mt-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-kanit" id="upd_g1_type">-</p>
+                  </td>
+                  <td><textarea id="emp_upd_g1" class="wd-input h-full min-h-[80px]" onfocus="autoFill(this, 'upd1')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+                <tr>
+                  <td>
+                      <p class="font-semibold text-gray-800 text-sm leading-tight" id="upd_g2_b">-</p>
+                      <p class="text-[10px] text-gray-500 mt-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-kanit" id="upd_g2_type">-</p>
+                  </td>
+                  <td><textarea id="emp_upd_g2" class="wd-input h-full min-h-[80px]" onfocus="autoFill(this, 'upd2')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+                <tr>
+                  <td>
+                      <p class="font-semibold text-gray-800 text-sm leading-tight" id="upd_g3_b">-</p>
+                      <p class="text-[10px] text-gray-500 mt-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-kanit" id="upd_g3_type">-</p>
+                  </td>
+                  <td><textarea id="emp_upd_g3" class="wd-input h-full min-h-[80px]" onfocus="autoFill(this, 'upd3')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="flex justify-end">
+               <button onclick="submitEmpUpdate()" class="wd-btn-primary">Submit Report</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 9: MANAGER EVALUATION (MID-REVIEW) -->
+      <!-- ========================================== -->
+      <div id="view-eval-1" class="view-content hidden max-w-4xl mx-auto">
+        <div class="wd-card">
+          <div class="wd-card-header flex justify-between items-center">
+              <span>Manager Review (Day 30)</span>
+              <span class="text-sm font-normal text-gray-500" id="mid_emp_name">-</span>
+          </div>
+          <div class="wd-card-body p-0">
+            <table class="wd-table">
+              <thead>
+                <tr>
+                  <th width="30%">Targeted Behavior</th>
+                  <th width="35%">Employee Update</th>
+                  <th width="35%">Manager Feedback <span class="text-red-500">*</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                      <p class="font-semibold text-gray-800 text-sm leading-tight" id="mid_g1_b">-</p>
+                      <p class="text-[10px] text-gray-500 mt-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-kanit" id="mid_g1_type">-</p>
+                  </td>
+                  <td><p class="text-sm text-gray-700 bg-gray-50 p-2 border border-gray-200 rounded min-h-[80px]" id="mid_g1_upd">-</p></td>
+                  <td class="p-2"><textarea id="mid_fb_g1" class="wd-input h-full min-h-[80px]" onfocus="autoFill(this, 'mid1')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+                <tr>
+                  <td>
+                      <p class="font-semibold text-gray-800 text-sm leading-tight" id="mid_g2_b">-</p>
+                      <p class="text-[10px] text-gray-500 mt-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-kanit" id="mid_g2_type">-</p>
+                  </td>
+                  <td><p class="text-sm text-gray-700 bg-gray-50 p-2 border border-gray-200 rounded min-h-[80px]" id="mid_g2_upd">-</p></td>
+                  <td class="p-2"><textarea id="mid_fb_g2" class="wd-input h-full min-h-[80px]" onfocus="autoFill(this, 'mid2')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+                <tr>
+                  <td>
+                      <p class="font-semibold text-gray-800 text-sm leading-tight" id="mid_g3_b">-</p>
+                      <p class="text-[10px] text-gray-500 mt-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-kanit" id="mid_g3_type">-</p>
+                  </td>
+                  <td><p class="text-sm text-gray-700 bg-gray-50 p-2 border border-gray-200 rounded min-h-[80px]" id="mid_g3_upd">-</p></td>
+                  <td class="p-2"><textarea id="mid_fb_g3" class="wd-input h-full min-h-[80px]" onfocus="autoFill(this, 'mid3')" placeholder="Click to autofill..."></textarea></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="p-6 border-t border-gray-200 flex justify-end bg-gray-50">
+               <button onclick="Swal.fire('Saved', 'บันทึกและแจ้ง Feedback ให้พนักงานทราบแล้ว', 'success').then(()=>setDemoState(10))" class="wd-btn-primary">Submit Feedback</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 10: FINAL EVALUATION (DAY 90) -->
+      <!-- ========================================== -->
+      <div id="view-eval-final" class="view-content hidden max-w-4xl mx-auto">
+        <div class="wd-card">
+          <div class="wd-card-header flex justify-between items-center bg-gray-800 text-white">
+              <span>Final Assessment (Day 90)</span>
+              <span class="text-sm font-normal" id="fin_emp_name">-</span>
+          </div>
+          <div class="wd-card-body">
+            
+            <h3 class="font-kanit font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 text-sm uppercase">Targeted Results Grading</h3>
+            
+            <table class="wd-table border border-gray-200 mb-6">
+              <thead>
+                <tr>
+                  <th width="80%">Targeted Result Validation</th>
+                  <th width="20%" class="text-center">Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="align-middle"><p class="text-sm text-gray-800" id="fin_g1_r">-</p></td>
+                  <td class="text-center">
+                     <select id="final_grade_g1" onchange="autoCalculateResult()" class="wd-input text-center w-20 mx-auto font-bold"><option value="A" selected>A</option><option value="B">B</option><option value="C">C</option></select>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="align-middle"><p class="text-sm text-gray-800" id="fin_g2_r">-</p></td>
+                  <td class="text-center">
+                     <select id="final_grade_g2" onchange="autoCalculateResult()" class="wd-input text-center w-20 mx-auto font-bold"><option value="A" selected>A</option><option value="B">B</option><option value="C">C</option></select>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="align-middle"><p class="text-sm text-gray-800" id="fin_g3_r">-</p></td>
+                  <td class="text-center">
+                     <select id="final_grade_g3" onchange="autoCalculateResult()" class="wd-input text-center w-20 mx-auto font-bold"><option value="A" selected>A</option><option value="B">B</option><option value="C">C</option></select>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="mb-8">
+              <label class="wd-label">Executive Summary</label>
+              <textarea class="wd-input" rows="4" onfocus="autoFill(this, 'finSum')" placeholder="Click to autofill summary..."></textarea>
+            </div>
+
+            <!-- AUTO DECISION -->
+            <div class="border-t border-gray-200 pt-6 flex flex-col items-center">
+                <p class="wd-label mb-2 text-center">Committee Decision</p>
+                <button id="btn_submit_decision" onclick="submitFinalEval()" class="px-12 py-3 rounded text-white font-kanit font-bold text-lg shadow transition bg-green-600 hover:bg-green-700">
+                    Submit Assessment: PASS
+                </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <!-- STAR METER FOOTER -->
+    <div class="pb-16 pt-4 text-center opacity-60 flex items-center justify-center gap-1.5">
+       <span class="text-[11px] font-kanit font-medium text-gray-500">Powered by</span>
+       <span class="text-[13px] font-kanit font-bold text-gray-800 tracking-wide">StarMeter</span>
+    </div>
+    
+  </div>
+
+  <script>
+    // ==========================================
+    // AUTOFILL DEFAULTS
+    // ==========================================
+    const DEFAULT_TEXTS = {
+        'empEmail': 'guntrakon@airasia.com',
+        'empName': 'Guntrakon Jittaksa',
+        'empId': 'AA12345',
+        'empDate': '2026-04-10',
+        'g1b': 'ปรับทัศนคติในการสื่อสารกับเพื่อนร่วมงานให้มีความเป็นมืออาชีพมากขึ้น',
+        'g1r': 'ข้อร้องเรียนลดลง และผลประเมิน 360 องศาจากทีมงานดีขึ้นอย่างน้อย 20%',
+        'g2b': 'เพิ่มทักษะการเจรจาต่อรองและการให้ Feedback (Coaching) แก่ Line Manager',
+        'g2r': 'Line Manager สามารถจัดทำแผน IDP ให้พนักงานในทีมได้อย่างสมบูรณ์ 100%',
+        'g3b': 'ทำงานเชิงรุกมากขึ้น ลงพื้นที่พูดคุยเพื่อรับฟังปัญหาด้วยความเข้าอกเข้าใจ (Empathy)',
+        'g3r': 'คะแนน Employee Engagement Survey ในภาพรวมเพิ่มขึ้นจากเดิม 10%',
+        
+        // Auto-fill Data ชุดใหม่สำหรับ Demo แบบเนียนๆ
+        'ack1': 'จะพยายามควบคุมอารมณ์ รับฟังความคิดเห็นของเพื่อนร่วมงานให้มากขึ้น และจะขอ Feedback ทุกสัปดาห์',
+        'ack2': 'จะจัดสรรเวลาเข้าประกบ Line Manager เพื่อสอนเทคนิคการทำ IDP แบบ 1-on-1 ทุกวันศุกร์',
+        'ack3': 'ตั้งเป้าหมายจะลงพื้นที่ทุกสาขาอย่างน้อยสาขาละ 1 ครั้งต่อเดือน เพื่อรับฟังปัญหาด้วยตัวเอง',
+        'upd1': 'ในรอบเดือนที่ผ่านมา ไม่มีการใช้อารมณ์ในที่ประชุม และรับฟังไอเดียของทีมมากขึ้นโดยไม่ขัดจังหวะ',
+        'upd2': 'ได้ทำการนัดหมายและประกบสอน Line Manager ไปแล้ว 3 ท่าน พบว่าสามารถเขียน IDP เบื้องต้นได้แล้ว',
+        'upd3': 'ลงพื้นที่สาขาเชียงใหม่และภูเก็ต ได้พูดคุยและรับฟังปัญหาจากพนักงานหน้างานมาแก้ไขกว่า 5 รายการ',
+        'mid1': 'ทำได้ดีขึ้นมาก ขอให้รักษาความใจเย็นนี้ไว้ และพยายามใช้คำพูดเชิงบวกในการสื่อสารเพิ่มขึ้น',
+        'mid2': 'เริ่มต้นได้ดี ขอให้ติดตามผลและให้ Feedback กลับไปยัง Line Manager ทั้ง 3 ท่านอย่างสม่ำเสมอด้วย',
+        'mid3': 'ชื่นชมความทุ่มเทในการลงพื้นที่ ขอให้นำปัญหาที่รับฟังมาเข้าที่ประชุมเพื่อหา Solution ร่วมกับทีม',
+        'finSum': 'พนักงานให้ความร่วมมือในโครงการ PIP อย่างดีเยี่ยม มีความตั้งใจและมีพัฒนาการในทุกมิติที่กำหนดไว้ โดยเฉพาะความสามารถในการเข้าถึงปัญหาหน้างานและการปรับปรุงการสื่อสารกับเพื่อนร่วมงาน จึงเห็นสมควรให้ผ่านการประเมินโครงการ PIP'
+    };
+
+    function autoFill(el, key) {
+        if (!el.value.trim()) {
+            el.value = DEFAULT_TEXTS[key];
+        }
+    }
+
+    // ==========================================
+    // DATA STORE & BINDING
+    // ==========================================
+    let PIP_DATA = {
+        name: "", email: "", id: "", startDate: "", endDate: "", managerEmail: "vacharavadh@airasia.com",
+        g1: { type: "Knowledge (K)", behavior: "", result: "", update: "" },
+        g2: { type: "Skill (S)", behavior: "", result: "", update: "" },
+        g3: { type: "Attitude (A)", behavior: "", result: "", update: "" }
+    };
+
+    function formatDate(dateStr, addDays = 0) {
+        if (!dateStr) return "-";
+        const d = new Date(dateStr); d.setDate(d.getDate() + addDays);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${d.getDate().toString().padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+    }
+
+    function syncDataToUI() {
+        PIP_DATA.endDate = PIP_DATA.startDate ? formatDate(PIP_DATA.startDate, 90) : "-";
+        const fStart = PIP_DATA.startDate ? formatDate(PIP_DATA.startDate, 0) : "-";
+        const empName = PIP_DATA.name || "(รอการสร้าง PIP)";
+        const idDisplay = PIP_DATA.id || "-";
+
+        document.getElementById('dash_emp_name').innerText = empName;
+        document.getElementById('dash_id').innerText = idDisplay;
+        
+        document.getElementById('acc_emp_info').innerText = PIP_DATA.name ? `${PIP_DATA.name} (${PIP_DATA.id})` : "-";
+        document.getElementById('acc_start_date').innerText = fStart;
+        document.getElementById('acc_end_date').innerText = PIP_DATA.endDate;
+        document.getElementById('acc_g1_type').innerText = PIP_DATA.g1.type;
+        document.getElementById('acc_g1_b').innerText = PIP_DATA.g1.behavior || "-";
+        document.getElementById('acc_g1_r').innerText = PIP_DATA.g1.result || "-";
+        document.getElementById('acc_g2_type').innerText = PIP_DATA.g2.type;
+        document.getElementById('acc_g2_b').innerText = PIP_DATA.g2.behavior || "-";
+        document.getElementById('acc_g2_r').innerText = PIP_DATA.g2.result || "-";
+        document.getElementById('acc_g3_type').innerText = PIP_DATA.g3.type;
+        document.getElementById('acc_g3_b').innerText = PIP_DATA.g3.behavior || "-";
+        document.getElementById('acc_g3_r').innerText = PIP_DATA.g3.result || "-";
+        
+        document.getElementById('upd_g1_type').innerText = PIP_DATA.g1.type;
+        document.getElementById('upd_g1_b').innerText = PIP_DATA.g1.behavior || "-";
+        document.getElementById('upd_g2_type').innerText = PIP_DATA.g2.type;
+        document.getElementById('upd_g2_b').innerText = PIP_DATA.g2.behavior || "-";
+        document.getElementById('upd_g3_type').innerText = PIP_DATA.g3.type;
+        document.getElementById('upd_g3_b').innerText = PIP_DATA.g3.behavior || "-";
+        
+        document.getElementById('mid_emp_name').innerText = empName;
+        document.getElementById('mid_g1_type').innerText = PIP_DATA.g1.type;
+        document.getElementById('mid_g1_b').innerText = PIP_DATA.g1.behavior || "-";
+        document.getElementById('mid_g1_upd').innerText = PIP_DATA.g1.update || "-";
+        document.getElementById('mid_g2_type').innerText = PIP_DATA.g2.type;
+        document.getElementById('mid_g2_b').innerText = PIP_DATA.g2.behavior || "-";
+        document.getElementById('mid_g2_upd').innerText = PIP_DATA.g2.update || "-";
+        document.getElementById('mid_g3_type').innerText = PIP_DATA.g3.type;
+        document.getElementById('mid_g3_b').innerText = PIP_DATA.g3.behavior || "-";
+        document.getElementById('mid_g3_upd').innerText = PIP_DATA.g3.update || "-";
+        
+        document.getElementById('fin_emp_name').innerText = empName;
+        document.getElementById('fin_g1_r').innerText = PIP_DATA.g1.result || "-";
+        document.getElementById('fin_g2_r').innerText = PIP_DATA.g2.result || "-";
+        document.getElementById('fin_g3_r').innerText = PIP_DATA.g3.result || "-";
+    }
+
+    // ==========================================
+    // ACTIONS & NOTIFICATIONS LOGIC
+    // ==========================================
+    function saveSetupAndSendEmail() {
+        PIP_DATA.email = document.getElementById('s_email').value;
+        PIP_DATA.name = document.getElementById('s_name').value;
+        PIP_DATA.id = document.getElementById('s_id').value;
+        PIP_DATA.startDate = document.getElementById('s_date').value;
+        PIP_DATA.g1.type = document.getElementById('s_g1_type').value; PIP_DATA.g1.behavior = document.getElementById('s_g1_b').value; PIP_DATA.g1.result = document.getElementById('s_g1_r').value;
+        PIP_DATA.g2.type = document.getElementById('s_g2_type').value; PIP_DATA.g2.behavior = document.getElementById('s_g2_b').value; PIP_DATA.g2.result = document.getElementById('s_g2_r').value;
+        PIP_DATA.g3.type = document.getElementById('s_g3_type').value; PIP_DATA.g3.behavior = document.getElementById('s_g3_b').value; PIP_DATA.g3.result = document.getElementById('s_g3_r').value;
+
+        if(!PIP_DATA.name || !PIP_DATA.email) return Swal.fire({ icon: 'warning', text: 'Please enter employee name and email.', confirmButtonColor: '#E21E26' });
+
+        syncDataToUI(); 
+        Swal.fire({ icon: 'success', title: 'PIP Initiated', text: 'Email notification sent to employee.', timer: 1500, showConfirmButton: false }).then(() => {
+            setDemoState(3); // Go to Email Invite
+        });
+    }
+
+    function submitAcceptance() {
+      const c1 = document.getElementById('ack_comment_g1').value.trim(); const c2 = document.getElementById('ack_comment_g2').value.trim(); const c3 = document.getElementById('ack_comment_g3').value.trim(); const isChecked = document.getElementById('accept-tickbox').checked;
+      if (!c1 || !c2 || !c3) return Swal.fire({ icon: 'warning', text: 'Please fill in all Action Plans.', confirmButtonColor: '#E21E26' });
+      if (!isChecked) return Swal.fire({ icon: 'warning', text: 'Please accept the terms.', confirmButtonColor: '#E21E26' });
+      Swal.fire({ icon: 'success', title: 'Acknowledged', text: 'Saved successfully.', timer: 1500, showConfirmButton: false }).then(() => { 
+          setDemoState(5); // Go to Email to Manager (Accepted)
+      });
+    }
+
+    function submitEmpUpdate() {
+        PIP_DATA.g1.update = document.getElementById('emp_upd_g1').value || "-"; 
+        PIP_DATA.g2.update = document.getElementById('emp_upd_g2').value || "-"; 
+        PIP_DATA.g3.update = document.getElementById('emp_upd_g3').value || "-";
+        syncDataToUI();
+        Swal.fire({ icon: 'success', title: 'Submitted', text: 'Report sent to manager.', timer: 1500, showConfirmButton: false }).then(() => { 
+            setDemoState(8); // Go to Email to Manager (Update Submitted)
+        });
+    }
+
+    let isFinalPass = true;
+    function autoCalculateResult() {
+        const g1 = document.getElementById('final_grade_g1').value; 
+        const g2 = document.getElementById('final_grade_g2').value; 
+        const g3 = document.getElementById('final_grade_g3').value;
+        const btn = document.getElementById('btn_submit_decision');
+        
+        if (g1 === 'C' || g2 === 'C' || g3 === 'C') {
+            isFinalPass = false;
+            btn.className = "px-12 py-3 rounded text-white font-kanit font-bold text-lg shadow transition bg-red-600 hover:bg-red-700";
+            btn.innerText = "Submit Assessment: FAIL";
+        } else {
+            isFinalPass = true;
+            btn.className = "px-12 py-3 rounded text-white font-kanit font-bold text-lg shadow transition bg-green-600 hover:bg-green-700";
+            btn.innerText = "Submit Assessment: PASS";
+        }
+    }
+
+    function submitFinalEval() {
+        if (isFinalPass) {
+            Swal.fire({ icon: 'success', title: 'Assessment Complete', html: 'Final Result: <b>PASS</b><br><br><span class="text-sm text-gray-500">Notified Management & StarMeter System.</span>', confirmButtonColor: '#10B981' });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Assessment Complete', html: 'Final Result: <b>FAIL</b><br><br><span class="text-sm text-gray-500">Notified Management to proceed with company policy.</span>', confirmButtonColor: '#E21E26' });
+        }
+    }
+
+    // ==========================================
+    // DYNAMIC EMAIL GENERATOR
+    // ==========================================
+    function renderEmail(type) {
+        const to = document.getElementById('email_to');
+        const subject = document.getElementById('email_subject');
+        const body = document.getElementById('email_body');
+        const btn = document.getElementById('email_action_btn');
+        const nameVal = PIP_DATA.name || "[Employee Name]";
+
+        if (type === 'invite') {
+            to.innerText = PIP_DATA.email || "-";
+            subject.innerText = "Action Required: Performance Improvement Plan (PIP)";
+            body.innerHTML = `
+                <p>เรียน <b>${nameVal}</b>,</p>
+                <p>ขอแจ้งให้ท่านทราบว่า ท่านได้รับการพิจารณาให้เข้าร่วมกระบวนการ <b>Performance Improvement Plan (PIP)</b> ระยะเวลา 90 วัน เพื่อเป็นแนวทางในการพัฒนาศักยภาพและปรับปรุงผลการปฏิบัติงานให้สอดคล้องกับมาตรฐานขององค์กร</p>
+                <p>ผู้บังคับบัญชาของท่านได้ระบุเป้าหมาย (Development Goals) ที่คาดหวังในระบบเรียบร้อยแล้ว ขอให้ท่านดำเนินการเข้าสู่ระบบเพื่อรับทราบเงื่อนไข เสนอแผนการดำเนินการ และเริ่มต้นกระบวนการประเมินตามกรอบเวลาที่กำหนด</p>
+            `;
+            btn.innerText = "Proceed to Portal";
+            btn.onclick = () => setDemoState(4); // To Accept view
+        } 
+        else if (type === 'accepted') {
+            to.innerText = PIP_DATA.managerEmail;
+            subject.innerText = `Update: PIP Acknowledged by ${nameVal}`;
+            body.innerHTML = `
+                <p>เรียน <b>Manager</b>,</p>
+                <p>พนักงาน <b>${nameVal}</b> ได้กดยอมรับเงื่อนไขและส่ง Action Plan สำหรับโครงการ PIP 90 วันเรียบร้อยแล้ว</p>
+                <p>ท่านสามารถเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและเตรียมพร้อมสำหรับการติดตามผล (Check-in) ในรอบถัดไป</p>
+            `;
+            btn.innerText = "Fast Forward ⏩ Day 30";
+            btn.onclick = () => setDemoState(6); // Forward to next email
+        }
+        else if (type === 'reminder') {
+            to.innerText = PIP_DATA.email || "-";
+            subject.innerText = `Reminder: PIP Day 30 Check-in Due`;
+            body.innerHTML = `
+                <p>เรียน <b>${nameVal}</b>,</p>
+                <p>ถึงกำหนดการรายงานความคืบหน้าโครงการ PIP (Milestone Check-in)</p>
+                <p>ขอให้ท่านเข้าสู่ระบบ StarMeter เพื่ออัปเดตผลการดำเนินงานและพฤติกรรมที่ท่านได้ปรับปรุงตามเป้าหมาย (Goals) ที่ตกลงร่วมกันไว้ เพื่อให้ผู้บังคับบัญชาพิจารณาให้คำแนะนำต่อไป</p>
+            `;
+            btn.innerText = "Submit Check-in";
+            btn.onclick = () => setDemoState(7); // To Check-in view
+        }
+        else if (type === 'updated') {
+            to.innerText = PIP_DATA.managerEmail;
+            subject.innerText = `Action Required: Review PIP Check-in for ${nameVal}`;
+            body.innerHTML = `
+                <p>เรียน <b>Manager</b>,</p>
+                <p>พนักงาน <b>${nameVal}</b> ได้ส่งรายงานความคืบหน้าโครงการ PIP เข้าสู่ระบบเรียบร้อยแล้ว</p>
+                <p>ขอให้ท่านเข้าสู่ระบบ StarMeter เพื่อตรวจสอบรายละเอียดความคืบหน้า และดำเนินการให้คำแนะนำ (Feedback) เพื่อให้พนักงานนำไปปรับปรุงในรอบถัดไป</p>
+            `;
+            btn.innerText = "Review & Provide Feedback";
+            btn.onclick = () => setDemoState(9); // To Mid Eval view
+        }
+    }
+
+    // ==========================================
+    // NAVIGATION CONTROLLER
+    // ==========================================
+    function setDemoState(stateNum) {
+      document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-state-${stateNum}`);
+      if(activeBtn) activeBtn.classList.add('active');
+      
+      const headerTitle = document.getElementById('header_title');
+      const headerSub = document.getElementById('header_subtitle');
+
+      if(stateNum === 1) { 
+          document.getElementById('view-dashboard').classList.remove('hidden'); 
+          headerTitle.innerText = "Organization Summary"; headerSub.innerText = "StarMeter Module";
+      }
+      else if(stateNum === 2) { 
+          document.getElementById('view-setup').classList.remove('hidden'); 
+          headerTitle.innerText = "Initiate PIP"; headerSub.innerText = "StarMeter Module";
+      } 
+      else if(stateNum === 3) { 
+          document.getElementById('view-email').classList.remove('hidden'); 
+          headerTitle.innerText = "Email Inbox"; headerSub.innerText = "Employee View";
+          renderEmail('invite');
+      }
+      else if(stateNum === 4) { 
+          document.getElementById('view-accept').classList.remove('hidden'); 
+          headerTitle.innerText = "My Performance Plan"; headerSub.innerText = "Employee Portal";
+      }
+      else if(stateNum === 5) { 
+          document.getElementById('view-email').classList.remove('hidden'); 
+          headerTitle.innerText = "Email Inbox"; headerSub.innerText = "Manager View";
+          renderEmail('accepted');
+      }
+      else if(stateNum === 6) { 
+          document.getElementById('view-email').classList.remove('hidden'); 
+          headerTitle.innerText = "Email Inbox"; headerSub.innerText = "Employee View";
+          renderEmail('reminder');
+      }
+      else if(stateNum === 7) { 
+          document.getElementById('view-update').classList.remove('hidden'); 
+          headerTitle.innerText = "My Performance Plan"; headerSub.innerText = "Employee Portal";
+      }
+      else if(stateNum === 8) { 
+          document.getElementById('view-email').classList.remove('hidden'); 
+          headerTitle.innerText = "Email Inbox"; headerSub.innerText = "Manager View";
+          renderEmail('updated');
+      }
+      else if(stateNum === 9) { 
+          document.getElementById('view-eval-1').classList.remove('hidden'); 
+          headerTitle.innerText = "Milestone Review"; headerSub.innerText = "StarMeter Module";
+      }
+      else if(stateNum === 10) { 
+          document.getElementById('view-eval-final').classList.remove('hidden'); 
+          headerTitle.innerText = "Final Evaluation"; headerSub.innerText = "StarMeter Module";
+          autoCalculateResult(); 
+      }
+      window.scrollTo(0, 0); 
+    }
+
+    window.onload = () => {
+      syncDataToUI(); setDemoState(1);
+    };
+  </script>
+</body>
+</html>
